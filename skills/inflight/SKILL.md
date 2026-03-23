@@ -1,30 +1,31 @@
 ---
 name: inflight
-version: 1.0.0
-description: "Inflight: Add the feedback widget to any staging site and share versions for design review."
+version: 1.1.0
+description: "Set up the Inflight feedback widget, authenticate with the CLI, and share staging URLs for design review. Use when the user wants to collect design feedback, add Inflight to a project, or share a staging deployment for review."
 ---
 
-# Inflight — AI Agent Skill
+# Inflight
 
-Inflight lets teams collect design feedback directly on staging URLs. This skill teaches you how to install the widget, authenticate, and share versions using the `inflight` CLI.
+Inflight lets teams collect design feedback directly on staging URLs. You will help the user install the CLI, authenticate, add the widget script, and share versions.
 
 ## Prerequisites
 
-- **Node.js 18+**
-- **npm** (for global install)
-- An Inflight account at https://inflight.co
+- Node.js 18+
+- An Inflight account — sign up at https://inflight.co
 
-## Step 1: Install the CLI
+## Step 1: Check if the CLI is installed
+
+```bash
+inflight --version
+```
+
+If the command is not found, install it:
 
 ```bash
 npm install -g inflight-cli
 ```
 
-Verify:
-
-```bash
-inflight --version
-```
+Then verify with `inflight --version`.
 
 ## Step 2: Authenticate
 
@@ -32,77 +33,56 @@ inflight --version
 inflight login
 ```
 
-This opens a browser window for the user to sign in. Credentials are stored locally and securely.
+- If already authenticated, the CLI confirms the session and exits.
+- If not, it opens a browser for sign-in. Wait for the CLI to confirm authentication before proceeding.
+- On success it prints: `✓ Logged in successfully`.
+- Credentials are managed automatically by the CLI.
 
-If already authenticated, `inflight login` confirms the session and exits.
+To log out later: `inflight logout`
 
-## Step 3: Add the Widget Script Tag
+## Step 3: Add the widget script tag
 
-**Before sharing a version, the staging site must include the Inflight widget loader.** This is a lightweight script (~30 lines) that checks if a version exists for the current hostname and loads the feedback widget if so. It does nothing if no version exists — zero overhead.
+**IMPORTANT: The widget script must be deployed to the staging environment BEFORE running `inflight share`.** If it's not there, the feedback UI won't appear.
 
-Add this `<script>` tag to the site's HTML, just before `</body>`:
+First, search the project for any existing `inflight.co/widget.js` reference. If it already exists, skip to Step 4.
+
+Add this script tag to the site's HTML, just before `</body>`:
 
 ```html
 <script src="https://inflight.co/widget.js" async></script>
 ```
 
-### Where to add it
+### Framework-specific placement
 
-The exact location depends on the framework:
+Detect the project's framework by checking `package.json` dependencies and file structure, then add the script in the correct location:
 
-**Next.js (App Router):**
+**Next.js (App Router)** — if `app/layout.tsx` exists:
 ```tsx
-// app/layout.tsx
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>
-        {children}
-        <script src="https://inflight.co/widget.js" async />
-      </body>
-    </html>
-  );
-}
-```
-
-**Next.js (Pages Router):**
-```tsx
-// pages/_document.tsx
-import { Html, Head, Main, NextScript } from "next/document";
-
-export default function Document() {
-  return (
-    <Html>
-      <Head />
-      <body>
-        <Main />
-        <NextScript />
-        <script src="https://inflight.co/widget.js" async />
-      </body>
-    </Html>
-  );
-}
-```
-
-**Vite / Create React App:**
-```html
-<!-- index.html -->
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-  <script src="https://inflight.co/widget.js" async></script>
-</body>
-```
-
-**Remix:**
-```tsx
-// app/root.tsx — inside the <body> of your root component
+// app/layout.tsx — add inside <body>, after {children}
 <script src="https://inflight.co/widget.js" async />
 ```
 
-**Nuxt 3:**
+**Next.js (Pages Router)** — if `pages/_document.tsx` exists:
+```tsx
+// pages/_document.tsx — add inside <body>, after <NextScript />
+<script src="https://inflight.co/widget.js" async />
+```
+
+**Vite / Create React App** — if `index.html` exists at project root:
+```html
+<!-- index.html — add inside <body>, after the main script -->
+<script src="https://inflight.co/widget.js" async></script>
+```
+
+**Remix** — if `app/root.tsx` exists:
+```tsx
+// app/root.tsx — add inside <body> of the root component
+<script src="https://inflight.co/widget.js" async />
+```
+
+**Nuxt 3** — if `nuxt.config.ts` exists:
 ```ts
-// nuxt.config.ts
+// nuxt.config.ts — add to the app.head.script array
 export default defineNuxtConfig({
   app: {
     head: {
@@ -112,21 +92,29 @@ export default defineNuxtConfig({
 });
 ```
 
-**Plain HTML:**
+**SvelteKit** — if `src/app.html` exists:
 ```html
+<!-- src/app.html — add inside <body>, after %sveltekit.body% -->
 <script src="https://inflight.co/widget.js" async></script>
 ```
 
-### Important notes
+**Astro** — if `src/layouts/` exists:
+```astro
+<!-- In the base layout, add inside <body> before </body> -->
+<script src="https://inflight.co/widget.js" async></script>
+```
 
-- The script tag must be deployed to the staging environment **before** running `inflight share`
-- The widget matches versions by **hostname** (e.g., `my-feature.vercel.app`)
-- The widget is fully isolated — it won't affect the host site's styles or events
-- If no version exists for the current hostname, the widget does nothing — zero overhead
+**Plain HTML:**
+```html
+<!-- Add before </body> -->
+<script src="https://inflight.co/widget.js" async></script>
+```
 
-### After adding the script tag
+If you cannot determine the framework, ask the user where their root HTML layout lives.
 
-Commit and deploy the change to your staging environment:
+### After adding the script
+
+Commit the change and tell the user to deploy to staging before proceeding:
 
 ```bash
 git add .
@@ -134,77 +122,67 @@ git commit -m "Add Inflight feedback widget"
 git push
 ```
 
-Wait for the staging deployment to complete before proceeding to Step 4.
+The user must push and wait for the staging deployment to complete before Step 4 will work.
 
-## Step 4: Share a Version
-
-Once the widget script is deployed to staging, share a version:
+## Step 4: Share a version
 
 ```bash
 inflight share
 ```
 
-This interactive command:
+**This is a fully interactive command. Do NOT try to pass arguments or pipe input — run it and let the user walk through the prompts in their terminal.**
 
-1. **Validates auth** — checks your stored API key
-2. **Resolves workspace** — reads `.inflight/workspace.json`, or prompts you to select one (stored for future runs)
-3. **Detects git info** — branch, commit SHA, commit message, remote URL, diff
-4. **Prompts for staging URL** — choose a provider:
-   - **Vercel** — auto-detects deployments from the Vercel API
-   - **Manual** — paste any URL (e.g., `https://my-feature.vercel.app`)
-5. **Creates the version** — sends project + version to the Inflight API
-6. **Opens the staging URL** in your browser with the widget active
+The command walks the user through:
 
-### Output
+1. **Workspace selection** — prompts the user to pick a workspace (remembered for future runs).
+2. **Staging URL** — the user chooses how to provide their staging URL:
+   - **Vercel** — auto-detects deployments and branch previews. May prompt for Vercel login and project linking if needed.
+   - **Paste a URL** — accepts any URL (e.g., `my-branch.vercel.app`).
+3. **Creates the version** — registers the staging URL with Inflight.
+4. **Opens the browser** — launches the staging URL with the feedback widget active.
 
-On success, the CLI prints the Inflight version URL:
-
+On success the CLI prints:
 ```
-┌ Your Inflight version
-│ https://inflight.co/v/v_abc123
-└
-✓ Done — opening staging URL...
+✓ Inflight added to your staging URL — opening in browser...
 ```
 
-### Config files created
+## Switching workspaces
 
-- `.inflight/workspace.json` — links this repo to a workspace (auto-added to `.gitignore`)
-
-## Complete Workflow Example
+If the user needs to change which Inflight workspace this project is linked to:
 
 ```bash
-# 1. Install
-npm install -g inflight-cli
-
-# 2. Authenticate
-inflight login
-
-# 3. Add widget script to your app's HTML (see Step 3 above)
-# ... edit index.html / layout.tsx / etc.
-
-# 4. Commit & deploy to staging
-git add .
-git commit -m "Add Inflight feedback widget"
-git push
-# Wait for staging deploy to finish...
-
-# 5. Share the version
-inflight share
-# Select workspace → pick Vercel or paste staging URL → done!
+inflight workspace
 ```
+
+## CLI Command Reference
+
+| Command              | What it does                                      |
+| -------------------- | ------------------------------------------------- |
+| `inflight login`     | Authenticate with your Inflight account           |
+| `inflight logout`    | Disconnect your Inflight account                  |
+| `inflight share`     | Share a staging URL for design feedback            |
+| `inflight workspace` | Switch the active workspace for this project      |
+
+## How the widget works
+
+- The widget checks if an Inflight version exists for the current hostname.
+- If a version exists, it loads the feedback UI (comments, polls, vibe checks).
+- If no version exists, it does nothing — zero overhead.
+- The widget is fully isolated — it won't affect the host site's styles or events.
+- Versions are matched by hostname (e.g., `my-app.vercel.app`), not by path.
 
 ## Troubleshooting
 
-### Widget not appearing on staging
+**Widget not appearing on staging:**
+1. View source on the staging URL — confirm the `widget.js` script tag is in the HTML.
+2. Check the hostname matches — the staging URL is normalized to just the hostname.
+3. Check the browser console for `[Inflight]` log messages.
 
-1. **Check the script tag is deployed** — view source on the staging URL, confirm `widget.js` is present
-2. **Check the hostname matches** — the CLI normalizes the staging URL to just the hostname. `https://my-app.vercel.app/some/path` becomes `my-app.vercel.app`
-3. **Check browser console** — look for `[Inflight]` log messages
-
-### "Not logged in" error
-
+**"Not logged in" error:**
 Run `inflight login` to re-authenticate. Sessions can expire.
 
-### "No workspaces found"
+**"No workspaces found":**
+The user needs to create a workspace at https://inflight.co first, then retry.
 
-Create a workspace at https://inflight.co first, then retry `inflight share`.
+**Vercel not detecting deployments:**
+Make sure the user is logged into the Vercel CLI (`vercel login` or `npx vercel login`).
