@@ -37,43 +37,48 @@ npm install -g inflight-cli
 
 First, search the project for any existing `inflight.co/widget.js` reference. If it already exists, skip to Step 3.
 
-Add this script tag to the site's HTML, just before `</body>`:
+Add this script tag to the site's HTML, just before `</body>`. Always include a comment above it explaining what it does:
 
 ```html
+<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
 <script src="https://www.inflight.co/widget.js" async></script>
 ```
 
 ### Framework-specific placement
 
-Detect the project's framework by checking `package.json` dependencies and file structure, then add the script in the correct location:
+Detect the project's framework by checking `package.json` dependencies and file structure, then add the script in the correct location. Always include the comment above the script tag.
 
 **Next.js (App Router)** — if `app/layout.tsx` exists:
 ```tsx
 // app/layout.tsx — add inside <body>, after {children}
+{/* Inflight: only activates for a specific staging URL when shared via `inflight share` */}
 <script src="https://www.inflight.co/widget.js" async />
 ```
 
 **Next.js (Pages Router)** — if `pages/_document.tsx` exists:
 ```tsx
 // pages/_document.tsx — add inside <body>, after <NextScript />
+{/* Inflight: only activates for a specific staging URL when shared via `inflight share` */}
 <script src="https://www.inflight.co/widget.js" async />
 ```
 
 **Vite / Create React App** — if `index.html` exists at project root:
 ```html
-<!-- index.html — add inside <body>, after the main script -->
+<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
 <script src="https://www.inflight.co/widget.js" async></script>
 ```
 
 **Remix** — if `app/root.tsx` exists:
 ```tsx
 // app/root.tsx — add inside <body> of the root component
+{/* Inflight: only activates for a specific staging URL when shared via `inflight share` */}
 <script src="https://www.inflight.co/widget.js" async />
 ```
 
 **Nuxt 3** — if `nuxt.config.ts` exists:
 ```ts
 // nuxt.config.ts — add to the app.head.script array
+// Inflight: only activates for a specific staging URL when shared via `inflight share`
 export default defineNuxtConfig({
   app: {
     head: {
@@ -85,19 +90,19 @@ export default defineNuxtConfig({
 
 **SvelteKit** — if `src/app.html` exists:
 ```html
-<!-- src/app.html — add inside <body>, after %sveltekit.body% -->
+<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
 <script src="https://www.inflight.co/widget.js" async></script>
 ```
 
 **Astro** — if `src/layouts/` exists:
 ```astro
-<!-- In the base layout, add inside <body> before </body> -->
+<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
 <script src="https://www.inflight.co/widget.js" async></script>
 ```
 
 **Plain HTML:**
 ```html
-<!-- Add before </body> -->
+<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
 <script src="https://www.inflight.co/widget.js" async></script>
 ```
 
@@ -109,7 +114,7 @@ The widget script tag must be live on the staging environment before `inflight s
 
 ```bash
 git add .
-git commit -m "Add Inflight feedback widget"
+git commit -m "Add Inflight feedback widget script tag"
 git push
 ```
 
