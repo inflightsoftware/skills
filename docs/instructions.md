@@ -1,6 +1,6 @@
 # Inflight
 
-Inflight lets teams collect design feedback directly on staging URLs. You will help the user install the CLI, authenticate, add the widget script, and share versions.
+Inflight lets teams collect design feedback directly on staging URLs. You will install the CLI, add the widget script to the project, help the user deploy, authenticate, and then tell the user to run the final sharing command in their terminal.
 
 ## Prerequisites
 
@@ -31,24 +31,11 @@ If a newer version is available, update:
 npm install -g inflight-cli
 ```
 
-## Step 2: Authenticate
+## Step 2: Add the widget script tag
 
-```bash
-inflight login
-```
+**IMPORTANT: The widget script must be deployed to the staging environment BEFORE the user runs `inflight share`.** If it's not there, the feedback UI won't appear.
 
-- If already authenticated, the CLI confirms the session and exits.
-- If not, it opens a browser for sign-in. Wait for the CLI to confirm authentication before proceeding.
-- On success it prints: `✓ Logged in successfully`.
-- Credentials are managed automatically by the CLI.
-
-To log out later: `inflight logout`
-
-## Step 3: Add the widget script tag
-
-**IMPORTANT: The widget script must be deployed to the staging environment BEFORE running `inflight share`.** If it's not there, the feedback UI won't appear.
-
-First, search the project for any existing `inflight.co/widget.js` reference. If it already exists, skip to Step 4.
+First, search the project for any existing `inflight.co/widget.js` reference. If it already exists, skip to Step 3.
 
 Add this script tag to the site's HTML, just before `</body>`:
 
@@ -116,9 +103,9 @@ export default defineNuxtConfig({
 
 If you cannot determine the framework, ask the user where their root HTML layout lives.
 
-### After adding the script
+## Step 3: Deploy the widget to staging
 
-Commit the change and tell the user to deploy to staging before proceeding:
+The widget script tag must be live on the staging environment before `inflight share` will work. Commit and push the change:
 
 ```bash
 git add .
@@ -126,67 +113,26 @@ git commit -m "Add Inflight feedback widget"
 git push
 ```
 
-The user must push and wait for the staging deployment to complete before Step 4 will work.
+**Tell the user they need to wait for their staging deployment to finish before running `inflight share`.** This is critical — the widget won't appear if the script tag isn't deployed yet.
 
-## Step 4: Share a version
+While the deployment is in progress, proceed to Step 4.
 
-```bash
-inflight share
-```
+## Step 4: Authenticate
 
-**This is a fully interactive command. Do NOT try to pass arguments or pipe input — run it and let the user walk through the prompts in their terminal.**
-
-The command walks the user through:
-
-1. **Workspace selection** — prompts the user to pick a workspace (remembered for future runs).
-2. **Staging URL** — the user chooses how to provide their staging URL:
-   - **Vercel** — auto-detects deployments and branch previews. May prompt for Vercel login and project linking if needed.
-   - **Paste a URL** — accepts any URL (e.g., `my-branch.vercel.app`).
-3. **Creates the version** — registers the staging URL with Inflight.
-4. **Opens the browser** — launches the staging URL with the feedback widget active.
-
-On success the CLI prints:
-```
-✓ Inflight added to your staging URL — opening in browser...
-```
-
-## Switching workspaces
-
-If the user needs to change which Inflight workspace this project is linked to:
+Run this command:
 
 ```bash
-inflight workspace
+inflight login
 ```
 
-## CLI Command Reference
+This opens a browser for sign-in and polls until complete. Wait for it to print `✓ Logged in successfully` before moving on.
 
-| Command              | What it does                                      |
-| -------------------- | ------------------------------------------------- |
-| `inflight login`     | Authenticate with your Inflight account           |
-| `inflight logout`    | Disconnect your Inflight account                  |
-| `inflight share`     | Share a staging URL for design feedback            |
-| `inflight workspace` | Switch the active workspace for this project      |
+If it prints an email and `✓ You're already logged in`, the user is already authenticated — proceed to Step 5.
 
-## How the widget works
+## Step 5: Share a version
 
-- The widget checks if an Inflight version exists for the current hostname.
-- If a version exists, it loads the feedback UI (comments, polls, vibe checks).
-- If no version exists, it does nothing — zero overhead.
-- The widget is fully isolated — it won't affect the host site's styles or events.
-- Versions are matched by hostname (e.g., `my-app.vercel.app`), not by path.
+**Do NOT run this command. Tell the user to run it in their terminal.**
 
-## Troubleshooting
+This command requires an interactive terminal and will fail if you try to run it. Instruct the user:
 
-**Widget not appearing on staging:**
-1. View source on the staging URL — confirm the `widget.js` script tag is in the HTML.
-2. Check the hostname matches — the staging URL is normalized to just the hostname.
-3. Check the browser console for `[Inflight]` log messages.
-
-**"Not logged in" error:**
-Run `inflight login` to re-authenticate. Sessions can expire.
-
-**"No workspaces found":**
-The user needs to create a workspace at https://www.inflight.co first, then retry.
-
-**Vercel not detecting deployments:**
-Make sure the user is logged into the Vercel CLI (`vercel login` or `npx vercel login`).
+> Run `inflight share` in your terminal. It will walk you through selecting a workspace and staging URL, then open your site with the feedback widget active.
