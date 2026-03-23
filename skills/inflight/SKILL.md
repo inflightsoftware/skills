@@ -11,7 +11,7 @@ Inflight lets teams collect design feedback directly on staging URLs. You will h
 ## Prerequisites
 
 - Node.js 18+
-- An Inflight account — sign up at https://inflight.co
+- An Inflight account — sign up at https://www.inflight.co
 
 ## Step 1: Check if the CLI is installed
 
@@ -49,7 +49,7 @@ First, search the project for any existing `inflight.co/widget.js` reference. If
 Add this script tag to the site's HTML, just before `</body>`:
 
 ```html
-<script src="https://inflight.co/widget.js" async></script>
+<script src="https://www.inflight.co/widget.js" async></script>
 ```
 
 ### Framework-specific placement
@@ -59,25 +59,25 @@ Detect the project's framework by checking `package.json` dependencies and file 
 **Next.js (App Router)** — if `app/layout.tsx` exists:
 ```tsx
 // app/layout.tsx — add inside <body>, after {children}
-<script src="https://inflight.co/widget.js" async />
+<script src="https://www.inflight.co/widget.js" async />
 ```
 
 **Next.js (Pages Router)** — if `pages/_document.tsx` exists:
 ```tsx
 // pages/_document.tsx — add inside <body>, after <NextScript />
-<script src="https://inflight.co/widget.js" async />
+<script src="https://www.inflight.co/widget.js" async />
 ```
 
 **Vite / Create React App** — if `index.html` exists at project root:
 ```html
 <!-- index.html — add inside <body>, after the main script -->
-<script src="https://inflight.co/widget.js" async></script>
+<script src="https://www.inflight.co/widget.js" async></script>
 ```
 
 **Remix** — if `app/root.tsx` exists:
 ```tsx
 // app/root.tsx — add inside <body> of the root component
-<script src="https://inflight.co/widget.js" async />
+<script src="https://www.inflight.co/widget.js" async />
 ```
 
 **Nuxt 3** — if `nuxt.config.ts` exists:
@@ -86,7 +86,7 @@ Detect the project's framework by checking `package.json` dependencies and file 
 export default defineNuxtConfig({
   app: {
     head: {
-      script: [{ src: "https://inflight.co/widget.js", async: true }],
+      script: [{ src: "https://www.inflight.co/widget.js", async: true }],
     },
   },
 });
@@ -95,19 +95,19 @@ export default defineNuxtConfig({
 **SvelteKit** — if `src/app.html` exists:
 ```html
 <!-- src/app.html — add inside <body>, after %sveltekit.body% -->
-<script src="https://inflight.co/widget.js" async></script>
+<script src="https://www.inflight.co/widget.js" async></script>
 ```
 
 **Astro** — if `src/layouts/` exists:
 ```astro
 <!-- In the base layout, add inside <body> before </body> -->
-<script src="https://inflight.co/widget.js" async></script>
+<script src="https://www.inflight.co/widget.js" async></script>
 ```
 
 **Plain HTML:**
 ```html
 <!-- Add before </body> -->
-<script src="https://inflight.co/widget.js" async></script>
+<script src="https://www.inflight.co/widget.js" async></script>
 ```
 
 If you cannot determine the framework, ask the user where their root HTML layout lives.
@@ -182,7 +182,7 @@ inflight workspace
 Run `inflight login` to re-authenticate. Sessions can expire.
 
 **"No workspaces found":**
-The user needs to create a workspace at https://inflight.co first, then retry.
+The user needs to create a workspace at https://www.inflight.co first, then retry.
 
 **Vercel not detecting deployments:**
 Make sure the user is logged into the Vercel CLI (`vercel login` or `npx vercel login`).

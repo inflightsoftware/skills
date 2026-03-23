@@ -1,6 +1,6 @@
 # Inflight Skills
 
-Agent skills for [Inflight](https://inflight.co) — collect design feedback directly on your staging URLs.
+Agent skills for [Inflight](https://www.inflight.co) — collect design feedback directly on your staging URLs.
 
 ## Add to your project
 
@@ -24,5 +24,5 @@ Inflight lets teams collect design feedback directly on staging deployments. Add
 
 ## Learn More
 
-- [Inflight](https://inflight.co)
+- [Inflight](https://www.inflight.co)
 - [Skills CLI](https://github.com/vercel-labs/skills)
