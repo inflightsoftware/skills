@@ -13,7 +13,7 @@ Set up the Inflight feedback widget and share staging URLs for design review.
 Fetch the latest instructions before proceeding:
 
 ```
-https://raw.githubusercontent.com/inflightsoftware/skills/main/skills/inflight/instructions.md
+https://raw.githubusercontent.com/inflightsoftware/skills/main/docs/instructions.md
 ```
 
 Use WebFetch to retrieve the content above, then follow those instructions step by step.
