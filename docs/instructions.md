@@ -140,8 +140,10 @@ If you cannot determine the framework, ask the user where their root HTML layout
 
 ### Step 5: Commit and push
 
+Only commit the file you modified with the widget script — do not stage unrelated changes.
+
 ```bash
-git add -A
+git add <file-you-modified>
 git commit -m "Add Inflight feedback widget script tag"
 git push
 ```
