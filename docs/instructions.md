@@ -1,143 +1,222 @@
-# Inflight
+# Inflight Agent Instructions
 
-Inflight lets teams collect design feedback directly on staging URLs. You will install the CLI, add the widget script to the project, help the user deploy, authenticate, and then tell the user to run the final sharing command in their terminal.
+Inflight lets teams collect design feedback directly on staging URLs. You will install the CLI, add the widget script, authenticate, and share the staging URL — all from this agent session.
 
 ## Prerequisites
 
 - Node.js 18+
 - An Inflight account — sign up at https://www.inflight.co
 
-## Step 1: Install or update the CLI
+---
+
+## Setup Flow (first time in a project)
+
+### Step 1: Install the CLI
+
+Check if already installed:
 
 ```bash
 inflight --version
 ```
 
-If the command is not found, install it:
+If not found, install it:
 
 ```bash
 npm install -g inflight-cli
 ```
 
-If already installed, check for updates:
-
-```bash
-npm outdated -g inflight-cli
-```
-
-If a newer version is available, update:
-
-```bash
-npm install -g inflight-cli
-```
-
-## Step 2: Add the widget script tag
-
-**IMPORTANT: The widget script must be deployed to the staging environment BEFORE the user runs `inflight share`.** If it's not there, the feedback UI won't appear.
-
-First, search the project for any existing `inflight.co/widget.js` reference. If it already exists, skip to Step 3.
-
-Add this script tag to the site's HTML, just before `</body>`. Always include a comment above it explaining what it does:
-
-```html
-<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
-<script src="https://www.inflight.co/widget.js" async></script>
-```
-
-### Framework-specific placement
-
-Detect the project's framework by checking `package.json` dependencies and file structure, then add the script in the correct location. Always include the comment above the script tag.
-
-**Next.js (App Router)** — if `app/layout.tsx` exists:
-```tsx
-// app/layout.tsx — add inside <body>, after {children}
-{/* Inflight: only activates for a specific staging URL when shared via `inflight share` */}
-<script src="https://www.inflight.co/widget.js" async />
-```
-
-**Next.js (Pages Router)** — if `pages/_document.tsx` exists:
-```tsx
-// pages/_document.tsx — add inside <body>, after <NextScript />
-{/* Inflight: only activates for a specific staging URL when shared via `inflight share` */}
-<script src="https://www.inflight.co/widget.js" async />
-```
-
-**Vite / Create React App** — if `index.html` exists at project root:
-```html
-<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
-<script src="https://www.inflight.co/widget.js" async></script>
-```
-
-**Remix** — if `app/root.tsx` exists:
-```tsx
-// app/root.tsx — add inside <body> of the root component
-{/* Inflight: only activates for a specific staging URL when shared via `inflight share` */}
-<script src="https://www.inflight.co/widget.js" async />
-```
-
-**Nuxt 3** — if `nuxt.config.ts` exists:
-```ts
-// nuxt.config.ts — add to the app.head.script array
-// Inflight: only activates for a specific staging URL when shared via `inflight share`
-export default defineNuxtConfig({
-  app: {
-    head: {
-      script: [{ src: "https://www.inflight.co/widget.js", async: true }],
-    },
-  },
-});
-```
-
-**SvelteKit** — if `src/app.html` exists:
-```html
-<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
-<script src="https://www.inflight.co/widget.js" async></script>
-```
-
-**Astro** — if `src/layouts/` exists:
-```astro
-<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
-<script src="https://www.inflight.co/widget.js" async></script>
-```
-
-**Plain HTML:**
-```html
-<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
-<script src="https://www.inflight.co/widget.js" async></script>
-```
-
-If you cannot determine the framework, ask the user where their root HTML layout lives.
-
-## Step 3: Deploy the widget to staging
-
-The widget script tag must be live on the staging environment before `inflight share` will work. Commit and push the change:
-
-```bash
-git add .
-git commit -m "Add Inflight feedback widget script tag"
-git push
-```
-
-**Tell the user they need to wait for their staging deployment to finish before running `inflight share`.** This is critical — the widget won't appear if the script tag isn't deployed yet.
-
-While the deployment is in progress, proceed to Step 4.
-
-## Step 4: Authenticate
-
-Run this command:
+### Step 2: Authenticate
 
 ```bash
 inflight login
 ```
 
-This opens a browser for sign-in and polls until complete. Wait for it to print `✓ Logged in successfully` before moving on.
+This opens a browser for sign-in. Wait for the success message before continuing.
 
-If it prints an email and `✓ You're already logged in`, the user is already authenticated — proceed to Step 5.
+If it says "You're already logged in", proceed to Step 3.
 
-## Step 5: Share a version
+### Step 3: Get the workspace and widget ID
 
-**Do NOT run this command. Tell the user to run it in their terminal.**
+```bash
+inflight workspaces --json
+```
 
-This command requires an interactive terminal and will fail if you try to run it. Instruct the user:
+Returns:
 
-> Run `inflight share` in your terminal. It will walk you through selecting a workspace and staging URL, then open your site with the feedback widget active.
+```json
+{"active": "ws_abc", "workspaces": [{"id": "ws_abc", "name": "My Workspace", "widgetId": "wgt_123"}]}
+```
+
+If `active` is set, use that workspace. If `active` is null and there are multiple workspaces, ask the user which one to use. Save the `id` and `widgetId` for the next steps.
+
+### Step 4: Add the widget script tag
+
+**IMPORTANT:** The widget script must be deployed to staging BEFORE `inflight share` will work. If it's not there, the feedback UI won't appear.
+
+First, search the project for any existing `inflight.co/widget.js` reference. If found, skip to Step 5.
+
+Detect the framework from `package.json` and file structure, then add the script in the correct location. Replace `WIDGET_ID` with the actual `widgetId` from Step 3.
+
+**Next.js (App Router)** — `app/layout.tsx` or `src/app/layout.tsx`:
+
+```tsx
+{
+	/* Inflight: only activates for a specific staging URL when shared via `inflight share` */
+}
+<script src="https://www.inflight.co/widget.js" data-workspace="WIDGET_ID" async />;
+```
+
+Add inside `<body>`, after `{children}`.
+
+**Next.js (Pages Router)** — `pages/_document.tsx`:
+
+```tsx
+{
+	/* Inflight: only activates for a specific staging URL when shared via `inflight share` */
+}
+<script src="https://www.inflight.co/widget.js" data-workspace="WIDGET_ID" async />;
+```
+
+Add inside `<body>`, after `<NextScript />`.
+
+**Vite / Create React App** — `index.html` at project root:
+
+```html
+<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
+<script src="https://www.inflight.co/widget.js" data-workspace="WIDGET_ID" async></script>
+```
+
+Add inside `<body>`, before `</body>`.
+
+**Remix** — `app/root.tsx`:
+
+```tsx
+{
+	/* Inflight: only activates for a specific staging URL when shared via `inflight share` */
+}
+<script src="https://www.inflight.co/widget.js" data-workspace="WIDGET_ID" async />;
+```
+
+Add inside `<body>`, after `<Scripts />`.
+
+**SvelteKit** — `src/app.html`:
+
+```html
+<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
+<script src="https://www.inflight.co/widget.js" data-workspace="WIDGET_ID" async></script>
+```
+
+Add after `%sveltekit.body%`.
+
+**Nuxt 3** — `nuxt.config.ts`:
+
+```ts
+export default defineNuxtConfig({
+	app: {
+		head: {
+			script: [{ src: "https://www.inflight.co/widget.js", "data-workspace": "WIDGET_ID", async: true }],
+		},
+	},
+});
+```
+
+**Astro** — base layout in `src/layouts/`:
+
+```html
+<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
+<script src="https://www.inflight.co/widget.js" data-workspace="WIDGET_ID" async></script>
+```
+
+Add before `</body>`.
+
+**Plain HTML:**
+
+```html
+<!-- Inflight: only activates for a specific staging URL when shared via `inflight share` -->
+<script src="https://www.inflight.co/widget.js" data-workspace="WIDGET_ID" async></script>
+```
+
+If you cannot determine the framework, ask the user where their root HTML layout lives.
+
+### Step 5: Commit and push
+
+```bash
+git add -A
+git commit -m "Add Inflight feedback widget script tag"
+git push
+```
+
+### Step 6: Share a staging URL
+
+Ask the user: "Do you deploy with Vercel, or do you want to paste a staging URL?"
+
+**If Vercel:**
+
+```bash
+inflight vercel teams --json
+```
+
+Ask which team. Then:
+
+```bash
+inflight vercel projects --json --team=TEAM_ID
+```
+
+Ask which project. Then:
+
+```bash
+inflight vercel deployments --json --team=TEAM_ID --project=PROJECT_ID
+```
+
+Present the deployments and ask which one. **Important:** Only suggest deployments created AFTER the commit from Step 5, since older deployments won't have the widget script.
+
+**If manual URL:** Ask the user for their staging URL.
+
+Then share:
+
+```bash
+inflight share --url=STAGING_URL --workspace=WORKSPACE_ID --json
+```
+
+This creates the version and opens the staging URL with the feedback widget active.
+
+---
+
+## Share Flow (repeated use)
+
+When the user wants to share a new version:
+
+### Step 1: Check authentication
+
+```bash
+inflight workspaces --json
+```
+
+If this fails, run `inflight login` first.
+
+### Step 2: Get staging URL
+
+Ask: "Vercel or paste a URL?"
+
+Use the same Vercel data commands as above, or ask for a manual URL.
+
+### Step 3: Share
+
+```bash
+inflight share --url=STAGING_URL --workspace=WORKSPACE_ID --json
+```
+
+Run `inflight workspaces --json` to get the workspace ID. If `active` is set, use it directly without asking the user.
+
+---
+
+## CLI Commands Reference
+
+| Command                                                     | Purpose                         | Output                           |
+| ----------------------------------------------------------- | ------------------------------- | -------------------------------- |
+| `inflight login`                                            | Authenticate via browser        | Opens browser, polls for session |
+| `inflight workspaces --json`                                | List workspaces with widget IDs | JSON array                       |
+| `inflight share --url=URL --workspace=ID --json`            | Share a staging URL             | JSON result                      |
+| `inflight vercel teams --json`                              | List Vercel teams               | JSON array                       |
+| `inflight vercel projects --json --team=ID`                 | List projects for a team        | JSON array                       |
+| `inflight vercel deployments --json --team=ID --project=ID` | List recent deployments         | JSON array                       |
