@@ -215,7 +215,8 @@ Run `inflight workspaces --json` to get the workspace ID. If `active` is set, us
 | Command                                                     | Purpose                         | Output                           |
 | ----------------------------------------------------------- | ------------------------------- | -------------------------------- |
 | `inflight login`                                            | Authenticate via browser        | Opens browser, polls for session |
-| `inflight workspaces --json`                                | List workspaces with widget IDs | JSON array                       |
+| `inflight workspaces --json`                                | List workspaces + active ID     | JSON object                      |
+| `inflight workspaces --set=ID`                              | Set the active workspace        | JSON confirmation                |
 | `inflight share --url=URL --workspace=ID --json`            | Share a staging URL             | JSON result                      |
 | `inflight vercel teams --json`                              | List Vercel teams               | JSON array                       |
 | `inflight vercel projects --json --team=ID`                 | List projects for a team        | JSON array                       |
