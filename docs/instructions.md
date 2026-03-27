@@ -141,43 +141,51 @@ Tell the user their changes need to be deployed before the widget will show. The
 
 Ask the user: "Do you deploy with Vercel, or do you want to paste a staging URL?"
 
-**If Vercel:** First, get the team and project IDs:
+**If Vercel:** List the available teams:
 
 ```bash
 inflight vercel teams
 ```
 
-Ask which team. Then:
+**Always ask the user which team to use** — do not assume, even if there's only one that looks right. Present the team names and IDs, then ask.
+
+Then list projects for the chosen team:
 
 ```bash
 inflight vercel projects --team=TEAM_ID
 ```
 
-Ask which project. Then save the Vercel configuration:
+**Always ask the user which project to use** — do not assume. Present the project names and IDs, then ask.
+
+Save the Vercel configuration:
 
 ```bash
 inflight vercel --team=TEAM_ID --project=PROJECT_ID --json
 ```
 
-This saves the Vercel project globally so future `inflight share` and `inflight vercel deployments` commands use it automatically. To change the project later, run this command again with different IDs.
+This saves the Vercel project globally so future commands use it automatically. To change later, run this command again with different IDs.
 
 ### Step 7: Share a staging URL
 
-**If Vercel:** Try the branch preview URL first (recommended — it auto-updates with each push):
+**If Vercel:** Get the branch preview URL (a stable URL that auto-updates with each push):
 
 ```bash
 inflight vercel branch-url --branch=BRANCH_NAME
 ```
 
-Returns `{"url": "my-branch.my-app.vercel.app", "branch": "main"}` or `{"url": null}` if no deployment exists for that branch.
-
-If no branch URL is available, fall back to picking from recent deployments:
+Also get recent deployments:
 
 ```bash
 inflight vercel deployments
 ```
 
-**Important:** Only suggest deployments created AFTER the commit from Step 5, since older deployments won't have the widget script.
+**Present both options to the user and ask which they want to use:**
+- The branch preview URL (recommended — auto-updates with each push, no need to re-share)
+- A specific deployment from the list
+
+**Do not assume** — always let the user choose.
+
+**Important:** If the widget script tag was just added in Step 5, only suggest deployments created AFTER that commit was pushed. Older deployments won't have the widget.
 
 **If manual URL:** Ask the user for their staging URL.
 
