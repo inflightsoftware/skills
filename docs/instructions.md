@@ -257,6 +257,22 @@ inflight share --url=STAGING_URL --workspace=WORKSPACE_ID --json
 
 ---
 
+## Agent Output Rules
+
+**After completing the setup flow:**
+- Confirm setup is complete and let the user know they can say "share to Inflight" in future sessions to share new staging URLs.
+- Do NOT summarize what was done (CLI version, auth status, workspace, widget location, Vercel config, etc.). The user saw each step happen.
+
+**After completing the share flow:**
+- Log the staging URL. The CLI auto-opens it in the browser.
+- Do NOT add any other commentary or summary.
+
+**General:**
+- Keep output minimal. The CLI handles user-facing messaging — don't duplicate it.
+- Never recap completed steps at the end of a flow.
+
+---
+
 ## CLI Commands Reference
 
 | Command                                                | Purpose                                | Output                           |
