@@ -228,17 +228,16 @@ inflight workspaces --set=WORKSPACE_ID
 
 Ask: "Vercel or paste a URL?"
 
-**If Vercel:** Try the branch preview URL first (recommended):
+**If Vercel:** Get the branch preview URL and recent deployments:
 
 ```bash
 inflight vercel branch-url --branch=BRANCH_NAME
-```
-
-If no branch URL, fall back to deployments:
-
-```bash
 inflight vercel deployments
 ```
+
+**Present both options to the user and ask which they want to use:**
+- The branch preview URL (recommended — auto-updates with each push)
+- A specific deployment from the list
 
 These commands use the saved Vercel project configuration. If the user wants to change the Vercel project:
 
