@@ -38,13 +38,13 @@ If it says "You're already logged in", proceed to Step 3.
 ### Step 3: Get the workspace and widget ID
 
 ```bash
-inflight workspaces --json
+inflight workspace --json
 ```
 
 Returns:
 
 ```json
-{"active": "ws_abc", "workspaces": [{"id": "ws_abc", "name": "My Workspace", "widgetId": "wgt_123"}]}
+{ "active": "ws_abc", "workspaces": [{ "id": "ws_abc", "name": "My Workspace", "widgetId": "wgt_123" }] }
 ```
 
 If `active` is set, use that workspace. If `active` is null and there are multiple workspaces, ask the user which one to use. Save the `id` and `widgetId` for the next steps.
@@ -137,62 +137,60 @@ git push
 
 Tell the user their changes need to be deployed before the widget will show. They can proceed to Step 6 immediately — they just need to pick a deployment that includes this push.
 
-### Step 6: Set up Vercel (if using Vercel)
+### Step 6: Get staging URL and share
 
-Ask the user: "Do you deploy with Vercel, or do you want to paste a staging URL?"
+Ask the user: "Where is your staging site deployed? (e.g., Vercel, Netlify, Railway, or paste a URL directly)"
 
-**If Vercel:** List the available teams:
-
-```bash
-inflight vercel teams
-```
-
-**Always ask the user which team to use** — do not assume, even if there's only one that looks right. Present the team names and IDs, then ask.
-
-Then list projects for the chosen team:
-
-```bash
-inflight vercel projects --team=TEAM_ID
-```
-
-**Always ask the user which project to use** — do not assume. Present the project names and IDs, then ask.
-
-Save the Vercel configuration:
-
-```bash
-inflight vercel --team=TEAM_ID --project=PROJECT_ID --json
-```
-
-This saves the Vercel project globally so future commands use it automatically. To change later, run this command again with different IDs.
-
-### Step 7: Share a staging URL
-
-**If Vercel:** Get the branch preview URL (a stable URL that auto-updates with each push):
-
-```bash
-inflight vercel branch-url --branch=BRANCH_NAME
-```
-
-Also get recent deployments:
+**If Vercel:** Get deployments and branch alias in one call:
 
 ```bash
 inflight vercel deployments
 ```
 
-**Present both options to the user and ask which they want to use:**
-- The branch preview URL (recommended — auto-updates with each push, no need to re-share)
-- A specific deployment from the list
+This auto-detects the Vercel project from the git repo and current branch. Returns JSON:
 
-**Do not assume** — always let the user choose.
+```json
+{
+	"branchAlias": { "url": "my-branch.vercel.app", "state": "READY", "branch": "main" },
+	"deployments": [
+		{
+			"url": "my-project-abc123.vercel.app",
+			"state": "READY",
+			"branch": "main",
+			"commitSha": "abc1234",
+			"commitMessage": "feat: add auth",
+			"createdAt": 1234567890
+		}
+	]
+}
+```
 
-**Important:** If the widget script tag was just added in Step 5, only suggest deployments created AFTER that commit was pushed. Older deployments won't have the widget.
+**Present the options to the user:**
+
+- If `branchAlias` exists, recommend it — it's a stable URL that auto-updates with each push, no need to re-share
+- Also show recent deployments as alternatives
+- **Do not assume** — always let the user choose
+
+**If auto-detection fails** (error with `vercel_not_configured`), list all projects:
+
+```bash
+inflight vercel projects
+```
+
+Ask the user which project, then retry with explicit IDs:
+
+```bash
+inflight vercel deployments --team=TEAM_ID --project=PROJECT_ID
+```
 
 **If manual URL:** Ask the user for their staging URL.
+
+**Important:** If the widget script tag was just added in Step 5, only suggest deployments created AFTER that commit was pushed. Older deployments won't have the widget.
 
 Then share:
 
 ```bash
-inflight share --url=STAGING_URL --workspace=WORKSPACE_ID --json
+inflight share --url=STAGING_URL --json
 ```
 
 This creates the version with the feedback widget active.
@@ -203,56 +201,32 @@ This creates the version with the feedback widget active.
 
 When the user wants to share a new version:
 
-### Step 1: Check for CLI updates
+### Step 1: Get staging URL
+
+Ask: "Where is your staging site deployed? (e.g., Vercel, Netlify, Railway, or paste a URL directly)"
+
+**If Vercel:**
 
 ```bash
-inflight --version
-npm install -g inflight-cli@latest
-```
-
-### Step 2: Check authentication and get workspace
-
-```bash
-inflight workspaces --json
-```
-
-If this fails with an auth error, run `inflight login` first.
-
-If `active` is set, use that workspace ID directly. If `active` is null and there are multiple workspaces, ask the user which one, then set it:
-
-```bash
-inflight workspaces --set=WORKSPACE_ID
-```
-
-### Step 3: Get staging URL
-
-Ask: "Vercel or paste a URL?"
-
-**If Vercel:** Get the branch preview URL and recent deployments:
-
-```bash
-inflight vercel branch-url --branch=BRANCH_NAME
 inflight vercel deployments
 ```
 
-**Present both options to the user and ask which they want to use:**
-- The branch preview URL (recommended — auto-updates with each push)
-- A specific deployment from the list
+This auto-detects the Vercel project and returns the branch alias + recent deployments.
 
-These commands use the saved Vercel project configuration. If the user wants to change the Vercel project:
+**Present the options to the user:**
 
-```bash
-inflight vercel --team=NEW_TEAM_ID --project=NEW_PROJECT_ID --json
-```
+- If `branchAlias` exists, recommend it (auto-updates with each push)
+- Also show recent deployments as alternatives
+- **Do not assume** — always let the user choose
+
+**If auto-detection fails**, fall back to `inflight vercel projects`, ask user to pick, then `inflight vercel deployments --team=TEAM_ID --project=PROJECT_ID`.
 
 **If manual URL:** Ask the user for their staging URL.
 
-**Important:** If the widget script tag was recently added, only suggest deployments created after that change was pushed. Older deployments won't have the widget.
-
-### Step 4: Share
+### Step 2: Share
 
 ```bash
-inflight share --url=STAGING_URL --workspace=WORKSPACE_ID --json
+inflight share --url=STAGING_URL --json
 ```
 
 ---
@@ -260,14 +234,17 @@ inflight share --url=STAGING_URL --workspace=WORKSPACE_ID --json
 ## Agent Output Rules
 
 **After completing the setup flow:**
+
 - Confirm setup is complete and let the user know they can say "share to Inflight" in future sessions to share new staging URLs.
-- Do NOT summarize what was done (CLI version, auth status, workspace, widget location, Vercel config, etc.). The user saw each step happen.
+- Do NOT summarize what was done (CLI version, auth status, workspace, widget location, etc.). The user saw each step happen.
 
 **After completing the share flow:**
+
 - Log the staging URL. The CLI auto-opens it in the browser.
 - Do NOT add any other commentary or summary.
 
 **General:**
+
 - Keep output minimal. The CLI handles user-facing messaging — don't duplicate it.
 - Never recap completed steps at the end of a flow.
 
@@ -275,17 +252,12 @@ inflight share --url=STAGING_URL --workspace=WORKSPACE_ID --json
 
 ## CLI Commands Reference
 
-| Command                                                | Purpose                                | Output                           |
-| ------------------------------------------------------ | -------------------------------------- | -------------------------------- |
-| `inflight login`                                       | Authenticate via browser               | Opens browser, polls for session |
-| `inflight workspaces --json`                           | List workspaces + active ID            | JSON object                      |
-| `inflight workspaces --set=ID`                         | Set the active workspace               | JSON confirmation                |
-| `inflight share --url=URL --workspace=ID --json`       | Share a staging URL                    | JSON result                      |
-| `inflight vercel --team=ID --project=ID --json`        | Save Vercel project configuration      | JSON confirmation                |
-| `inflight vercel teams`                                | List Vercel teams                      | JSON array (always)              |
-| `inflight vercel projects --team=ID`                   | List projects for a team               | JSON array (always)              |
-| `inflight vercel branch-url --branch=NAME`             | Get stable branch preview URL          | JSON object (always)             |
-| `inflight vercel deployments`                          | List recent deployments (saved config) | JSON array (always)              |
-| `inflight vercel deployments --team=ID --project=ID`   | List deployments (explicit IDs)        | JSON array (always)              |
-| `inflight vercel deployments --branch=NAME`            | List deployments filtered by branch    | JSON array (always)              |
-| `inflight vercel deployments --limit=N`                | Limit number of deployments (default 10) | JSON array (always)            |
+| Command                                              | Purpose                                  | Output        |
+| ---------------------------------------------------- | ---------------------------------------- | ------------- |
+| `inflight login`                                     | Authenticate via browser                 | Opens browser |
+| `inflight workspace --json`                          | List workspaces + active ID              | JSON object   |
+| `inflight workspace --set=ID`                        | Set the active workspace                 | JSON confirm  |
+| `inflight share --url=URL --json`                    | Share a staging URL                      | JSON result   |
+| `inflight vercel deployments`                        | Deployments + branch alias (auto-detect) | JSON object   |
+| `inflight vercel deployments --team=ID --project=ID` | Deployments (explicit project)           | JSON object   |
+| `inflight vercel projects`                           | List all Vercel projects across teams    | JSON array    |
